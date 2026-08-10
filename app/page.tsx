@@ -1,115 +1,364 @@
-import Navbar from "@/components/Navbar";
-import PremiumEquipment from "@/components/PremiumEquipment";
+"use client";
 
-export default function Home() {
+import Link from "next/link";
+
+const products = [
+  {
+    name: "EXTENDED PROTECTION ELBOW GUARD",
+    slug: "extended-elbow-guard",
+    image: "/images/Products/elbow-guards/extended/elbow-guard.png",
+  },
+  {
+    name: "ELBOW GUARD",
+    slug: "elbow-guard",
+    image:
+      "/images/Products/elbow-guards/standard/Single Strap Elbow Guard.jpeg",
+  },
+  {
+    name: "EXTENDED PROTECTION LEG GUARD",
+    slug: "extended-leg-guard",
+    image: "/images/Products/leg-guard/leg-guard.png",
+  },
+  {
+    name: "HAND GUARD",
+    slug: "hand-guard",
+    image: "/images/Products/hand-guard/hand-guard.png",
+  },
+  {
+    name: "LONG CUFF BATTING GLOVES",
+    slug: "long-cuff-batting-gloves",
+    image:
+      "/images/Products/batting-gloves/long-cuff/long-cuff-batting-gloves.png",
+  },
+  {
+    name: "SHORT CUFF BATTING GLOVES",
+    slug: "short-cuff-batting-gloves",
+    image:
+      "/images/Products/batting-gloves/short-cuff/short-cuff-batting-gloves.PNG",
+  },
+  {
+    name: "SLIDING MITT",
+    slug: "sliding-mitt",
+    image: "/images/Products/sliding-mitt/sliding-mitt.png",
+  },
+  {
+    name: "ARM SLEEVES",
+    slug: "arm-sleeves",
+    image: "/images/Products/arm-sleeves/arm-sleeves.png",
+  },
+];
+
+export default function HomePage() {
   return (
-    <>
-      <Navbar />
+    <main className="min-h-screen bg-black text-white">
 
-      <main className="bg-black text-white">
-        {/* HERO */}
-        <section className="relative flex min-h-[65vh] items-center overflow-hidden px-6 py-12">
-          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top,rgba(203,173,125,0.10),transparent_65%)]" />
-          <div className="relative z-10 mx-auto grid max-w-7xl items-center gap-10 lg:grid-cols-2">
-            <div>
-              <h1 className="text-5xl font-black leading-none md:text-6xl lg:text-7xl">
-                Premium Custom<br />Baseball<br />Equipment
-              </h1>
+      {/* NAVBAR */}
+      <header className="relative z-20 w-full bg-black">
+        <div className="mx-auto flex h-[82px] max-w-[1500px] items-center justify-between px-6 md:h-[90px] md:px-10 lg:px-14">
 
-              <p className="mt-8 max-w-xl text-lg leading-8 text-gray-300 md:text-xl">
-                Performance-driven equipment custom designed around your organization's colors,
-                logos, and identity.
-              </p>
+          <Link href="/">
+            <img
+              src="/images/logo/kustom-baseball-logo.png"
+              alt="Kustom Baseball"
+              className="w-[125px] md:w-[155px]"
+            />
+          </Link>
 
-              <button className="mt-10 rounded-full bg-[#CBAD7D] px-8 py-4 font-semibold text-black transition hover:opacity-90">
-                Schedule a Team Fitting
-              </button>
-            </div>
+          <nav className="hidden items-center gap-8 text-sm md:flex">
+            <a
+              href="#products"
+              className="transition hover:text-[#dfbc7d]"
+            >
+              Products
+            </a>
 
-            <div className="flex justify-center">
-              <img
-                src="/images/hero-equipment.png"
-                alt="Kustom Baseball Equipment"
-                className="w-full max-w-2xl"
-              />
-            </div>
-          </div>
-        </section>
+            <a
+              href="#how-it-works"
+              className="transition hover:text-[#dfbc7d]"
+            >
+              How It Works
+            </a>
 
-        <section className="-mt-12 pb-8">
-          <div className="mx-auto max-w-7xl px-6">
-            <PremiumEquipment />
-          </div>
-        </section>
+            <a
+              href="#contact"
+              className="transition hover:text-[#dfbc7d]"
+            >
+              Contact
+            </a>
+          </nav>
 
-        <section className="border-t border-white/10 pt-16 pb-24">
-          <div className="mx-auto max-w-6xl px-6">
-            <div className="text-center">
-              <p className="mb-4 text-sm font-semibold uppercase tracking-[0.35em] text-[#CBAD7D]">
-                TEAM FITTING PROCESS
-              </p>
+          <button
+            type="button"
+            className="flex flex-col gap-1.5 md:hidden"
+            aria-label="Open menu"
+          >
+            <span className="h-0.5 w-7 bg-white" />
+            <span className="h-0.5 w-7 bg-white" />
+            <span className="h-0.5 w-7 bg-white" />
+          </button>
 
-              <h2 className="text-5xl font-black">How It Works</h2>
+        </div>
+      </header>
 
-              <p className="mx-auto mt-6 max-w-3xl text-xl leading-9 text-gray-300">
-                Every collection is designed around your organization's colors,
-                logos, and identity before each team is professionally fitted
-                and orders custom equipment built specifically for them.
-              </p>
-            </div>
 
-            <div className="mt-20 grid gap-10 lg:grid-cols-3">
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8">
-                <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[#CBAD7D]">Day 1</span>
-                <h3 className="mt-4 text-3xl font-black">Team Visit</h3>
-                <p className="mt-6 text-lg leading-8 text-gray-300">
-                  We create an official collection built around your organization's colors,
-                  logos, and identity. Each team then orders custom-fitted equipment from
-                  that collection, creating a consistent, professional look across the organization.
-                  During the fitting, players try on the equipment, get professionally sized,
-                  and have any questions answered.
-                </p>
-              </div>
+      {/* HERO */}
+      <section className="relative h-[72svh] min-h-[540px] overflow-hidden md:h-[78svh] md:min-h-[600px]">
 
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8">
-                <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[#CBAD7D]">Days 1–6</span>
-                <h3 className="mt-4 text-3xl font-black">Player Ordering</h3>
-                <p className="mt-6 text-lg leading-8 text-gray-300">
-                  Following the team fitting, every family receives a personalized ordering link
-                  where they can purchase the products they choose.
-                </p>
-                <p className="mt-6 text-lg leading-8 text-gray-300">
-                  Orders must be placed before the deadline so every player's order can be included
-                  in the same team production run. Once the ordering window closes, production begins.
-                </p>
-              </div>
+        <picture className="absolute inset-0 block h-full w-full">
 
-              <div className="rounded-3xl border border-white/10 bg-white/[0.03] p-8">
-                <span className="text-sm font-semibold uppercase tracking-[0.25em] text-[#CBAD7D]">6–8 Weeks</span>
-                <h3 className="mt-4 text-3xl font-black">Receive Your Custom Equipment</h3>
-                <p className="mt-6 text-lg leading-8 text-gray-300">
-                  Once production is complete, your team's custom equipment is delivered ready for the season.
-                </p>
-              </div>
-            </div>
-          </div>
-        </section>
+          {/* MOBILE HERO */}
+          <source
+            media="(max-width: 768px)"
+            srcSet="/images/Hero/Hero%20image%20for%20mobile.png"
+          />
 
-        <section className="border-t border-white/10 py-32">
-          <div className="mx-auto max-w-4xl px-6 text-center">
-            <h2 className="text-5xl font-black">Ready to Outfit Your Team?</h2>
+          {/* DESKTOP + TABLET HERO */}
+          <img
+            src="/images/Hero/Hero%20image%20for%20desktop.png"
+            alt="Kustom Baseball custom baseball gear"
+            className="h-full w-full object-cover object-center"
+          />
 
-            <p className="mx-auto mt-8 max-w-2xl text-xl leading-9 text-gray-300">
-              Schedule a team fitting and we'll handle everything from professional sizing
-              and ordering to delivering premium custom equipment built around your organization's identity.
+        </picture>
+
+        {/* DARK BOTTOM FADE */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/5 via-transparent to-black/95" />
+
+        {/* SUBTLE EDGE DARKENING */}
+        <div className="absolute inset-0 bg-[radial-gradient(ellipse_at_center,transparent_38%,rgba(0,0,0,0.4)_100%)]" />
+
+
+        {/* HERO CONTENT */}
+        <div className="relative z-10 mx-auto flex h-full max-w-[1500px] items-end px-6 pb-8 md:px-10 md:pb-10 lg:px-14">
+
+          <div className="max-w-[480px]">
+
+            <h1 className="text-4xl font-bold uppercase leading-[0.92] tracking-tight text-white sm:text-5xl md:text-6xl">
+              WEAR YOUR
+              <br />
+              CONFIDENCE.
+            </h1>
+
+            <p className="mt-4 max-w-[420px] text-xs font-semibold leading-relaxed tracking-[0.08em] text-white/85 sm:text-sm">
+              Custom-made gear built for players who belong.
             </p>
 
-            <button className="mt-12 rounded-full bg-[#CBAD7D] px-10 py-4 text-lg font-semibold text-black transition hover:opacity-90">
-              Schedule a Team Fitting
-            </button>
+            <a
+              href="#products"
+              className="mt-5 inline-flex rounded-full bg-[#dfbc7d] px-6 py-3 text-sm font-semibold text-black transition hover:scale-[1.02]"
+            >
+              Explore Our Gear
+            </a>
+
           </div>
-        </section>
-      </main>
-    </>
+
+        </div>
+
+      </section>
+
+
+      {/* PRODUCTS */}
+      <section
+        id="products"
+        className="px-4 py-7 sm:px-6 md:px-10 md:py-9 lg:px-14"
+      >
+
+        <div className="mx-auto max-w-[1500px]">
+
+          <div className="mb-5">
+            <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#dfbc7d]">
+              OUR GEAR
+            </p>
+          </div>
+
+          <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-3 md:gap-y-8 lg:grid-cols-4">
+
+            {products.map((product) => (
+              <Link
+                key={product.slug}
+                href={`/products/${product.slug}`}
+                className="group block"
+              >
+
+                <div className="aspect-square overflow-hidden bg-white">
+                  <img
+                    src={product.image}
+                    alt={product.name}
+                    className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
+                  />
+                </div>
+
+                <h2 className="mt-2.5 min-h-[32px] text-[10px] font-semibold uppercase leading-[1.2] tracking-[0.04em] sm:text-xs md:min-h-[38px] md:text-sm">
+                  {product.name}
+                </h2>
+
+              </Link>
+            ))}
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* OFFICIAL CUSTOM GEAR PARTNER */}
+      <section className="border-t border-white/10 px-6 py-8 md:px-10 md:py-10 lg:px-14">
+
+        <div className="mx-auto flex max-w-[900px] flex-col items-center text-center">
+
+          <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-white/45 sm:text-xs">
+            Official Custom Gear Partner of the
+          </p>
+
+          <p className="mt-2 text-sm font-semibold uppercase tracking-[0.12em] text-white/80 sm:text-base">
+            Kitchener Panthers
+          </p>
+
+          <img
+            src="/images/logo/team%20logos/Panthers%20logo.png"
+            alt="Kitchener Panthers"
+            className="mt-4 h-14 w-auto object-contain"
+          />
+
+        </div>
+
+      </section>
+
+
+      {/* HOW IT WORKS */}
+      <section
+        id="how-it-works"
+        className="border-t border-white/10 px-6 py-10 md:px-10 md:py-12 lg:px-14"
+      >
+
+        <div className="mx-auto max-w-[1500px]">
+
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#dfbc7d]">
+            HOW IT WORKS
+          </p>
+
+
+          {/* THREE STEPS */}
+          <div className="mt-7 grid gap-8 md:grid-cols-3 md:gap-8">
+
+            {/* STEP 1 */}
+            <div className="pt-4">
+
+              <span className="text-xs font-semibold tracking-[0.2em] text-[#dfbc7d]">
+                01
+              </span>
+
+              <h3 className="mt-2 text-lg font-bold uppercase">
+                See & Try It On
+              </h3>
+
+              <p className="mt-2 text-sm leading-relaxed text-white/50">
+                We come to your team with samples, help players find the right
+                sizes, and answer questions from players and parents.
+              </p>
+
+            </div>
+
+
+            {/* STEP 2 */}
+            <div className="border-t border-white/20 pt-4 md:border-t-0 md:border-l md:pl-8">
+
+              <span className="text-xs font-semibold tracking-[0.2em] text-[#dfbc7d]">
+                02
+              </span>
+
+              <h3 className="mt-2 text-lg font-bold uppercase">
+                Get Your Link
+              </h3>
+
+              <p className="mt-2 text-sm leading-relaxed text-white/50">
+                Each family receives an individualized order link for their
+                player. The sizes selected during the fitting are already
+                preselected, making it easy to review the gear and place your
+                order.
+              </p>
+
+            </div>
+
+
+            {/* STEP 3 */}
+            <div className="border-t border-white/20 pt-4 md:border-t-0 md:border-l md:pl-8">
+
+              <span className="text-xs font-semibold tracking-[0.2em] text-[#dfbc7d]">
+                03
+              </span>
+
+              <h3 className="mt-2 text-lg font-bold uppercase">
+                Pick Your Gear & Order
+              </h3>
+
+              <p className="mt-2 text-sm leading-relaxed text-white/50">
+                Choose your gear and place your order. We’ll then have your
+                custom products made and hand deliver them to your team.
+                Because everything is custom-made for your team, production
+                takes 6–8 weeks.
+              </p>
+
+            </div>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      {/* CONTACT */}
+      <section
+        id="contact"
+        className="border-t border-white/10 px-6 py-12 md:px-10 md:py-16 lg:px-14"
+      >
+
+        <div className="mx-auto max-w-[1500px]">
+
+          <p className="text-xs font-semibold uppercase tracking-[0.25em] text-[#dfbc7d]">
+            READY TO BUILD YOUR COLLECTION?
+          </p>
+
+          <h2 className="mt-3 text-4xl font-bold uppercase leading-[0.92] md:text-5xl">
+            BRING KUSTOM
+            <br />
+            TO YOUR TEAM.
+          </h2>
+
+          <a
+            href="mailto:hello@kustombaseball.com"
+            className="mt-5 inline-flex rounded-full bg-[#dfbc7d] px-7 py-3 text-sm font-semibold text-black"
+          >
+            Start Your Team Collection
+          </a>
+
+        </div>
+
+      </section>
+
+
+      {/* FOOTER */}
+      <footer className="border-t border-white/10 px-6 py-5 md:px-10 lg:px-14">
+
+        <div className="mx-auto flex max-w-[1500px] justify-between">
+
+          <p className="text-[10px] uppercase tracking-[0.18em] text-white/35">
+            © {new Date().getFullYear()} Kustom Baseball
+          </p>
+
+          <Link
+            href="/"
+            className="text-[10px] uppercase tracking-[0.18em] text-white/35"
+          >
+            Kustom Baseball
+          </Link>
+
+        </div>
+
+      </footer>
+
+    </main>
   );
 }
