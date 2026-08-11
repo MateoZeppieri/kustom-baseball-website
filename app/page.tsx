@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 
 const products = [
@@ -49,6 +50,8 @@ const products = [
 ];
 
 export default function HomePage() {
+  const [showAllProducts, setShowAllProducts] = useState(false);
+
   return (
     <main className="min-h-screen bg-black text-white">
 
@@ -160,7 +163,7 @@ export default function HomePage() {
       {/* PRODUCTS */}
       <section
         id="products"
-        className="px-4 py-7 sm:px-6 md:px-10 md:py-9 lg:px-14"
+        className="px-4 py-8 sm:px-6 md:px-10 md:py-10 lg:px-14"
       >
 
         <div className="mx-auto max-w-[1500px]">
@@ -171,29 +174,64 @@ export default function HomePage() {
             </p>
           </div>
 
-          <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-3 md:gap-y-8 lg:grid-cols-4">
 
-            {products.map((product) => (
-              <Link
-                key={product.slug}
-                href={`/products/${product.slug}`}
-                className="group block"
+          {/* PRODUCT GRID */}
+          <div className="grid grid-cols-2 gap-x-3 gap-y-7 sm:gap-x-5 md:grid-cols-4 md:gap-6">
+
+            {products.map((product, index) => {
+
+              if (index >= 4 && !showAllProducts) {
+                return null;
+              }
+
+              return (
+                <Link
+                  key={product.slug}
+                  href={`/products/${product.slug}`}
+                  className="group block"
+                >
+
+                  <div className="aspect-square overflow-hidden bg-white">
+
+                    <img
+                      src={product.image}
+                      alt={product.name}
+                      className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
+                    />
+
+                  </div>
+
+                  <h2 className="mt-2.5 min-h-[32px] text-[10px] font-semibold uppercase leading-[1.2] tracking-[0.04em] sm:text-xs md:min-h-[38px] md:text-sm">
+                    {product.name}
+                  </h2>
+
+                </Link>
+              );
+            })}
+
+          </div>
+
+
+          {/* VIEW ALL / SHOW LESS */}
+          <div className="mt-8 flex justify-center">
+
+            {!showAllProducts ? (
+              <button
+                type="button"
+                onClick={() => setShowAllProducts(true)}
+                className="inline-flex rounded-full border border-white/30 px-7 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:border-white hover:bg-white hover:text-black"
               >
-
-                <div className="aspect-square overflow-hidden bg-white">
-                  <img
-                    src={product.image}
-                    alt={product.name}
-                    className="h-full w-full object-contain transition duration-300 group-hover:scale-[1.03]"
-                  />
-                </div>
-
-                <h2 className="mt-2.5 min-h-[32px] text-[10px] font-semibold uppercase leading-[1.2] tracking-[0.04em] sm:text-xs md:min-h-[38px] md:text-sm">
-                  {product.name}
-                </h2>
-
-              </Link>
-            ))}
+                View All Gear ↓
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setShowAllProducts(false)}
+                className="inline-flex rounded-full border border-white/30 px-7 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-white transition hover:border-white hover:bg-white hover:text-black"
+              >
+                Show Less ↑
+              </button>
+            )}
 
           </div>
 
