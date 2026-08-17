@@ -3,6 +3,7 @@
 import {
   useEffect,
   useMemo,
+  useRef,
   useState,
   type PointerEvent,
 } from "react";
@@ -19,6 +20,8 @@ type LogoPosition = {
   size: number;
   rotation: number;
 };
+
+type LogoSlot = "main" | "upper" | "lower";
 
 type Logo = {
   id: string;
@@ -199,15 +202,13 @@ const PATH =
 
 const PRODUCT = {
   shell:
-    `${PATH}extendedelbowguardshell.png`,
+    `${PATH}Shell.png`,
   lining:
-    `${PATH}Extendedelbowguardlining.png`,
+    `${PATH}Lining.png`,
   straps:
-    `${PATH}extendedelbowguardstraps.png`,
+    `${PATH}Straps.png`,
 };
 
-const MASK =
-  `${PATH}shell_mask_tight.png`;
 
 const DEFAULT_COLORS: Record<
   ColorKey,
@@ -269,29 +270,21 @@ function TexturedProductLayer({
   image,
   color,
   zIndex,
-  shell = false,
 }: {
   image: string;
   color: string;
   zIndex: number;
-  shell?: boolean;
 }) {
-  const hex = color
-    .replace("#", "")
-    .padEnd(6, "0");
+  const hex = color.replace("#", "").padEnd(6, "0");
+  const filterId = `texture-${zIndex}-${hex}`;
 
-  const filterId =
-    `texture-${zIndex}-${hex}`;
+  const r = parseInt(hex.slice(0, 2), 16) / 255;
+  const g = parseInt(hex.slice(2, 4), 16) / 255;
+  const b = parseInt(hex.slice(4, 6), 16) / 255;
 
-  const r =
-    parseInt(hex.slice(0, 2), 16) / 255;
-
-  const g =
-    parseInt(hex.slice(2, 4), 16) / 255;
-
-  const b =
-    parseInt(hex.slice(4, 6), 16) / 255;
-
+  // Preserve the photographed light / shadow texture while keeping the
+  // selected RGB hue exact. No gamma correction or extra blend layer is
+  // applied, because those can visibly shift yellows toward green.
   const matrix = `
     ${0.2126 * r} ${0.7152 * r} ${0.0722 * r} 0 0
     ${0.2126 * g} ${0.7152 * g} ${0.0722 * g} 0 0
@@ -301,10 +294,7 @@ function TexturedProductLayer({
 
   return (
     <>
-      <svg
-        className="absolute h-0 w-0"
-        aria-hidden="true"
-      >
+      <svg className="absolute h-0 w-0" aria-hidden="true">
         <defs>
           <filter
             id={filterId}
@@ -314,129 +304,21 @@ function TexturedProductLayer({
             width="120%"
             height="120%"
           >
-            <feColorMatrix
-              type="matrix"
-              values={matrix}
-              result="baseColor"
-            />
-
-            <feComponentTransfer
-              in="baseColor"
-            >
-              <feFuncR
-                type="gamma"
-                amplitude="1"
-                exponent="0.90"
-              />
-
-              <feFuncG
-                type="gamma"
-                amplitude="1"
-                exponent="0.90"
-              />
-
-              <feFuncB
-                type="gamma"
-                amplitude="1"
-                exponent="0.90"
-              />
-
-              <feFuncA type="identity" />
-            </feComponentTransfer>
-          </filter>
-
-          <filter
-            id={`${filterId}-detail`}
-            colorInterpolationFilters="sRGB"
-            x="-10%"
-            y="-10%"
-            width="120%"
-            height="120%"
-          >
-            <feColorMatrix
-              type="saturate"
-              values="0"
-            />
-
-            <feComponentTransfer>
-              <feFuncR
-                type="gamma"
-                amplitude="1.08"
-                exponent="0.72"
-                offset="-0.02"
-              />
-
-              <feFuncG
-                type="gamma"
-                amplitude="1.08"
-                exponent="0.72"
-                offset="-0.02"
-              />
-
-              <feFuncB
-                type="gamma"
-                amplitude="1.08"
-                exponent="0.72"
-                offset="-0.02"
-              />
-
-              <feFuncA type="identity" />
-            </feComponentTransfer>
+            <feColorMatrix type="matrix" values={matrix} />
           </filter>
         </defs>
       </svg>
 
       <div
         className="pointer-events-none absolute inset-0"
-        style={{
-          zIndex,
-
-          ...(shell
-            ? {
-                WebkitMaskImage:
-                  `url("${MASK}")`,
-                maskImage:
-                  `url("${MASK}")`,
-                WebkitMaskSize:
-                  "100% 100%",
-                maskSize:
-                  "100% 100%",
-                WebkitMaskPosition:
-                  "center",
-                maskPosition:
-                  "center",
-                WebkitMaskRepeat:
-                  "no-repeat",
-                maskRepeat:
-                  "no-repeat",
-                WebkitMaskMode:
-                  "luminance",
-                maskMode:
-                  "luminance",
-              }
-            : {}),
-        }}
+        style={{ zIndex }}
       >
         <img
           src={image}
           alt=""
           draggable={false}
           className="absolute inset-0 h-full w-full object-contain"
-          style={{
-            filter:
-              `url(#${filterId})`,
-          }}
-        />
-
-        <img
-          src={image}
-          alt=""
-          draggable={false}
-          className="absolute inset-0 h-full w-full object-contain opacity-[0.13] mix-blend-soft-light"
-          style={{
-            filter:
-              `url(#${filterId}-detail)`,
-          }}
+          style={{ filter: `url(#${filterId})` }}
         />
       </div>
     </>
@@ -695,6 +577,27 @@ export default function DesignStudioPage() {
   ] = useState<LogoPosition>({
     ...DEFAULT_LOWER,
   });
+
+  const [
+    selectedLogoSlot,
+    setSelectedLogoSlot,
+  ] = useState<LogoSlot | null>(null);
+
+  const logoGestureRef = useRef<{
+    mode: "drag" | "rotate" | "resize";
+    slot: LogoSlot;
+    stageRect?: DOMRect;
+    offsetX?: number;
+    offsetY?: number;
+    centerX?: number;
+    centerY?: number;
+    startAngle?: number;
+    startRotation?: number;
+    startDistance?: number;
+    startSize?: number;
+    minSize?: number;
+    maxSize?: number;
+  } | null>(null);
 
   const [
     logoControlsOpen,
@@ -2041,57 +1944,31 @@ export default function DesignStudioPage() {
   }
 
   /* ------------------------------------------------------------------------ */
-  /* LOGO DRAGGING                                                            */
+  /* DIRECT LOGO EDITING                                                      */
   /* ------------------------------------------------------------------------ */
 
-  function dragLogo(
-    event: PointerEvent<HTMLImageElement>,
-    setter: (
-      callback: (
-        position: LogoPosition
-      ) => LogoPosition
-    ) => void
+  function clampLogoValue(
+    value: number,
+    min: number,
+    max: number
   ) {
-    const parent =
-      event.currentTarget
-        .parentElement;
+    return Math.max(min, Math.min(max, value));
+  }
 
-    if (!parent) {
-      return;
+  function finishLogoGesture(
+    event: PointerEvent<HTMLElement>
+  ) {
+    if (
+      event.currentTarget.hasPointerCapture(
+        event.pointerId
+      )
+    ) {
+      event.currentTarget.releasePointerCapture(
+        event.pointerId
+      );
     }
 
-    const rect =
-      parent.getBoundingClientRect();
-
-    const x =
-      ((event.clientX -
-        rect.left) /
-        rect.width) *
-      100;
-
-    const y =
-      ((event.clientY -
-        rect.top) /
-        rect.height) *
-      100;
-
-    setter(
-      (current) => ({
-        ...current,
-
-        x: Math.max(
-          0,
-          Math.min(100, x)
-        ),
-
-        y: Math.max(
-          0,
-          Math.min(100, y)
-        ),
-      })
-    );
-
-    changed();
+    logoGestureRef.current = null;
   }
 
   /* ------------------------------------------------------------------------ */
@@ -2245,15 +2122,19 @@ export default function DesignStudioPage() {
   }
 
   /* ------------------------------------------------------------------------ */
-  /* LOGO IMAGE                                                               */
+  /* DIRECT-MANIPULATION LOGO                                                  */
   /* ------------------------------------------------------------------------ */
 
   function LogoImage({
+    slot,
     src,
     position,
     setter,
     alt,
+    minSize,
+    maxSize,
   }: {
+    slot: LogoSlot;
     src: string;
     position: LogoPosition;
     setter: (
@@ -2262,51 +2143,323 @@ export default function DesignStudioPage() {
       ) => LogoPosition
     ) => void;
     alt: string;
+    minSize: number;
+    maxSize: number;
   }) {
+    const selected =
+      selectedLogoSlot === slot;
+
+    const startDrag = (
+      event: PointerEvent<HTMLImageElement>
+    ) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedLogoSlot(slot);
+
+      const stage =
+        event.currentTarget.closest(
+          '[data-logo-stage="true"]'
+        ) as HTMLElement | null;
+
+      if (!stage) return;
+
+      const rect =
+        stage.getBoundingClientRect();
+
+      const centerX =
+        rect.left +
+        (position.x / 100) * rect.width;
+      const centerY =
+        rect.top +
+        (position.y / 100) * rect.height;
+
+      logoGestureRef.current = {
+        mode: "drag",
+        slot,
+        stageRect: rect,
+        offsetX:
+          event.clientX - centerX,
+        offsetY:
+          event.clientY - centerY,
+      };
+
+      event.currentTarget.setPointerCapture(
+        event.pointerId
+      );
+    };
+
+    const moveDrag = (
+      event: PointerEvent<HTMLImageElement>
+    ) => {
+      const gesture =
+        logoGestureRef.current;
+
+      if (
+        !gesture ||
+        gesture.mode !== "drag" ||
+        gesture.slot !== slot ||
+        !gesture.stageRect
+      ) {
+        return;
+      }
+
+      const rect = gesture.stageRect;
+      const x =
+        ((event.clientX -
+          (gesture.offsetX ?? 0) -
+          rect.left) /
+          rect.width) *
+        100;
+      const y =
+        ((event.clientY -
+          (gesture.offsetY ?? 0) -
+          rect.top) /
+          rect.height) *
+        100;
+
+      setter((current) => ({
+        ...current,
+        x: clampLogoValue(x, 0, 100),
+        y: clampLogoValue(y, 0, 100),
+      }));
+
+      changed();
+    };
+
+    const startRotate = (
+      event: PointerEvent<HTMLButtonElement>
+    ) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedLogoSlot(slot);
+
+      const logo =
+        event.currentTarget.closest(
+          '[data-logo-item="true"]'
+        ) as HTMLElement | null;
+
+      if (!logo) return;
+
+      const rect =
+        logo.getBoundingClientRect();
+      const centerX =
+        rect.left + rect.width / 2;
+      const centerY =
+        rect.top + rect.height / 2;
+      const startAngle =
+        Math.atan2(
+          event.clientY - centerY,
+          event.clientX - centerX
+        ) *
+        (180 / Math.PI);
+
+      logoGestureRef.current = {
+        mode: "rotate",
+        slot,
+        centerX,
+        centerY,
+        startAngle,
+        startRotation:
+          position.rotation,
+      };
+
+      event.currentTarget.setPointerCapture(
+        event.pointerId
+      );
+    };
+
+    const moveRotate = (
+      event: PointerEvent<HTMLButtonElement>
+    ) => {
+      const gesture =
+        logoGestureRef.current;
+
+      if (
+        !gesture ||
+        gesture.mode !== "rotate" ||
+        gesture.slot !== slot
+      ) {
+        return;
+      }
+
+      const angle =
+        Math.atan2(
+          event.clientY -
+            (gesture.centerY ?? 0),
+          event.clientX -
+            (gesture.centerX ?? 0)
+        ) *
+        (180 / Math.PI);
+
+      const rotation =
+        (gesture.startRotation ?? 0) +
+        angle -
+        (gesture.startAngle ?? 0);
+
+      setter((current) => ({
+        ...current,
+        rotation,
+      }));
+
+      changed();
+    };
+
+    const startResize = (
+      event: PointerEvent<HTMLButtonElement>
+    ) => {
+      event.preventDefault();
+      event.stopPropagation();
+      setSelectedLogoSlot(slot);
+
+      const logo =
+        event.currentTarget.closest(
+          '[data-logo-item="true"]'
+        ) as HTMLElement | null;
+
+      if (!logo) return;
+
+      const rect =
+        logo.getBoundingClientRect();
+      const centerX =
+        rect.left + rect.width / 2;
+      const centerY =
+        rect.top + rect.height / 2;
+      const startDistance =
+        Math.hypot(
+          event.clientX - centerX,
+          event.clientY - centerY
+        ) || 1;
+
+      logoGestureRef.current = {
+        mode: "resize",
+        slot,
+        centerX,
+        centerY,
+        startDistance,
+        startSize: position.size,
+        minSize,
+        maxSize,
+      };
+
+      event.currentTarget.setPointerCapture(
+        event.pointerId
+      );
+    };
+
+    const moveResize = (
+      event: PointerEvent<HTMLButtonElement>
+    ) => {
+      const gesture =
+        logoGestureRef.current;
+
+      if (
+        !gesture ||
+        gesture.mode !== "resize" ||
+        gesture.slot !== slot
+      ) {
+        return;
+      }
+
+      const distance = Math.hypot(
+        event.clientX -
+          (gesture.centerX ?? 0),
+        event.clientY -
+          (gesture.centerY ?? 0)
+      );
+
+      const ratio =
+        distance /
+        (gesture.startDistance ?? 1);
+      const nextSize =
+        (gesture.startSize ?? position.size) *
+        ratio;
+
+      setter((current) => ({
+        ...current,
+        size: clampLogoValue(
+          nextSize,
+          gesture.minSize ?? minSize,
+          gesture.maxSize ?? maxSize
+        ),
+      }));
+
+      changed();
+    };
+
     return (
-      <img
-        src={src}
-        alt={alt}
-        draggable={false}
-        className="absolute z-[40] cursor-move select-none object-contain"
+      <div
+        data-logo-item="true"
+        className="absolute z-[40] select-none"
         style={{
-          left:
-            `${position.x}%`,
-
-          top:
-            `${position.y}%`,
-
-          width:
-            `${position.size}%`,
-
-          transform:
-            `translate(-50%, -50%) rotate(${position.rotation}deg)`,
-
-          touchAction:
-            "none",
+          left: `${position.x}%`,
+          top: `${position.y}%`,
+          width: `${position.size}%`,
+          transform: `translate(-50%, -50%) rotate(${position.rotation}deg)`,
+          transformOrigin: "center center",
+          touchAction: "none",
         }}
-        onPointerDown={(
-          event
-        ) => {
-          event.currentTarget.setPointerCapture(
-            event.pointerId
-          );
+        onPointerDown={(event) => {
+          event.stopPropagation();
+          setSelectedLogoSlot(slot);
         }}
-        onPointerMove={(
-          event
-        ) => {
-          if (
-            event.currentTarget.hasPointerCapture(
-              event.pointerId
-            )
-          ) {
-            dragLogo(
-              event,
-              setter
-            );
-          }
-        }}
-      />
+      >
+        <div
+          className={`relative ${
+            selected
+              ? "rounded-md outline outline-2 outline-offset-2 outline-black/70"
+              : ""
+          }`}
+        >
+          <img
+            src={src}
+            alt={alt}
+            draggable={false}
+            className="block h-auto w-full cursor-grab object-contain active:cursor-grabbing"
+            onPointerDown={startDrag}
+            onPointerMove={moveDrag}
+            onPointerUp={finishLogoGesture}
+            onPointerCancel={finishLogoGesture}
+          />
+
+          {selected && (
+            <>
+              <div className="pointer-events-none absolute left-1/2 top-[-30px] h-[26px] w-px -translate-x-1/2 bg-black/60" />
+
+              <button
+                type="button"
+                aria-label={`Rotate ${alt}`}
+                title="Drag to rotate"
+                className="absolute left-1/2 top-[-46px] flex h-7 w-7 -translate-x-1/2 items-center justify-center rounded-full border border-black/30 bg-white text-sm font-black shadow-sm cursor-grab active:cursor-grabbing"
+                style={{
+                  touchAction: "none",
+                }}
+                onPointerDown={startRotate}
+                onPointerMove={moveRotate}
+                onPointerUp={finishLogoGesture}
+                onPointerCancel={finishLogoGesture}
+              >
+                ↻
+              </button>
+
+              <button
+                type="button"
+                aria-label={`Resize ${alt}`}
+                title="Drag to resize"
+                className="absolute bottom-[-12px] right-[-12px] flex h-6 w-6 items-center justify-center rounded-full border border-black/30 bg-white text-[11px] font-black shadow-sm cursor-nwse-resize"
+                style={{
+                  touchAction: "none",
+                }}
+                onPointerDown={startResize}
+                onPointerMove={moveResize}
+                onPointerUp={finishLogoGesture}
+                onPointerCancel={finishLogoGesture}
+              >
+                ↘
+              </button>
+            </>
+          )}
+        </div>
+      </div>
     );
   }
 
@@ -2412,17 +2565,22 @@ export default function DesignStudioPage() {
               </div>
             </section>
 
+            {/* DESKTOP WORKSPACE: controls left, live preview right */}
+            <div className="mt-6 grid items-start gap-6 xl:grid-cols-[minmax(0,0.92fr)_minmax(620px,1.08fr)]">
+
+              <div className="space-y-6">
+
             {/* COLORS + LOGOS */}
 
-            <div className="mt-6 grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6">
 
-              <section className="rounded-2xl border border-black/10 bg-white p-6">
+              <section className="rounded-2xl border border-black/10 bg-white p-5">
 
                 <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ad874d]">
                   Brand Kit
                 </p>
 
-                <h2 className="mt-2 text-2xl font-black uppercase">
+                <h2 className="mt-2 text-xl font-black uppercase">
                   Team Colors
                 </h2>
 
@@ -2511,13 +2669,13 @@ export default function DesignStudioPage() {
 
               {/* LOGOS */}
 
-              <section className="rounded-2xl border border-black/10 bg-white p-6">
+              <section className="rounded-2xl border border-black/10 bg-white p-5">
 
                 <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ad874d]">
                   Brand Kit
                 </p>
 
-                <h2 className="mt-2 text-2xl font-black uppercase">
+                <h2 className="mt-2 text-xl font-black uppercase">
                   Team Logos
                 </h2>
 
@@ -2699,7 +2857,7 @@ export default function DesignStudioPage() {
 
             {/* DESIGN */}
 
-            <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+            <section className="rounded-2xl border border-black/10 bg-white p-5">
 
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ad874d]">
                 Product Design
@@ -2752,7 +2910,7 @@ export default function DesignStudioPage() {
 
             {/* COLOR PLACEMENT */}
 
-            <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+            <section className="rounded-2xl border border-black/10 bg-white p-5">
 
               <p className="text-[10px] font-bold uppercase tracking-[0.22em] text-[#ad874d]">
                 Color Placement
@@ -2841,7 +2999,7 @@ export default function DesignStudioPage() {
 
             {/* LOGO CONTROLS */}
 
-            <section className="mt-6 rounded-2xl border border-black/10 bg-white p-6">
+            <section className="rounded-2xl border border-black/10 bg-white p-5">
 
               <button
                 type="button"
@@ -2857,7 +3015,7 @@ export default function DesignStudioPage() {
                 <div>
 
                   <p className="text-xs font-black uppercase">
-                    Position & Size
+                    Fine Tune (Optional)
                   </p>
 
                   <p className="mt-1 text-[10px] text-black/40">
@@ -2948,9 +3106,13 @@ export default function DesignStudioPage() {
               )}
             </section>
 
+              </div>
+
+              <div className="xl:sticky xl:top-6">
+
             {/* LIVE PREVIEW */}
 
-            <section className="mt-6 overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm">
+            <section className="overflow-hidden rounded-2xl border border-black/10 bg-white shadow-sm">
 
               <div className="border-b border-black/10 p-6">
 
@@ -2962,19 +3124,29 @@ export default function DesignStudioPage() {
                   Double Strap Elbow Guard
                 </h2>
 
+                <p className="mt-3 text-xs font-semibold text-black/50">
+                  Click a logo to select it. Drag the logo to move it, drag ↻ to rotate, and drag ↘ to resize.
+                </p>
+
               </div>
 
-              <div className="bg-[#eeeeec] p-6 sm:p-12">
+              <div className="bg-[#eeeeec] p-5 lg:p-7">
 
-                <div className="mx-auto flex min-h-[600px] max-w-[1000px] items-center justify-center rounded-2xl border border-black/10 bg-white p-8 shadow-lg">
+                <div className="mx-auto flex min-h-[620px] items-center justify-center rounded-2xl border border-black/10 bg-white p-6 shadow-lg">
 
-                  <div className="relative aspect-[16/9] w-full max-w-[900px] overflow-visible">
+                  <div className="relative h-[610px] aspect-[2/3] max-h-[72vh] overflow-visible">
 
                     <div
+                      data-logo-stage="true"
                       className="absolute inset-0"
+                      onPointerDown={(event) => {
+                        if (event.target === event.currentTarget) {
+                          setSelectedLogoSlot(null);
+                        }
+                      }}
                       style={{
                         transform:
-                          "scale(1.75)",
+                          "scale(0.92)",
                         transformOrigin:
                           "center center",
                       }}
@@ -2988,7 +3160,6 @@ export default function DesignStudioPage() {
                           "Shell"
                         )}
                         zIndex={10}
-                        shell
                       />
 
                       <TexturedProductLayer
@@ -3013,6 +3184,9 @@ export default function DesignStudioPage() {
 
                       {primaryLogo && (
                         <LogoImage
+                          slot="main"
+                          minSize={3}
+                          maxSize={35}
                           src={
                             primaryLogo
                           }
@@ -3028,6 +3202,9 @@ export default function DesignStudioPage() {
 
                       {secondaryLogo && (
                         <LogoImage
+                          slot="upper"
+                          minSize={2}
+                          maxSize={20}
                           src={
                             secondaryLogo
                           }
@@ -3043,6 +3220,9 @@ export default function DesignStudioPage() {
 
                       {secondaryLogo && (
                         <LogoImage
+                          slot="lower"
+                          minSize={2}
+                          maxSize={20}
                           src={
                             secondaryLogo
                           }
@@ -3084,6 +3264,9 @@ export default function DesignStudioPage() {
 
               </div>
             </section>
+
+              </div>
+            </div>
 
           </>
         )}
@@ -3741,7 +3924,6 @@ export default function DesignStudioPage() {
                                   .primary
                               }
                               zIndex={10}
-                              shell
                             />
 
                             <TexturedProductLayer
